@@ -1,16 +1,23 @@
 <template>
-  <div class="m-2 p-2">
-    <PercentileChart />
+  <div>
+    <div class="m-2 p-2">
+      <PercentileChartGirl02 />
+    </div>
+    <div class="m-2 p-2">
+      <PercentileChartGirl25 />
+    </div>
+    <div class="m-2 p-2">
+      <PercentileChartBoy02 />
+    </div>
+    <div class="m-2 p-2">
+      <PercentileChartBoy25 />
+    </div>
   </div>
-  <!-- <div class="p-8">
-    <PercentileChart2 />
-  </div> -->
 </template>
 
 <script setup>
 
+
 </script>
 
-<style>
-
-</style>
+<style></style>
