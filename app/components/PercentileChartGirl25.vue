@@ -6,12 +6,16 @@ import { GraphicComponent } from 'echarts/components';
 import * as echarts from 'echarts/core';
 echarts.use([GraphicComponent]);
 
+const bgGraphData = [65, 120]
+
 // ข้อมูลตัวอย่าง percentile (แทนที่ด้วยข้อมูลจริงจาก WHO หรือ กรมอนามัยได้)
 const xData = [65.0, 67.5, 70.0, 72.5, 75.0, 77.5, 80.0, 82.5, 85.0, 87.5, 90.0, 92.5, 95.0, 97.5, 100.0, 102.5, 105.0, 107.5, 110.0, 112.5, 115.0, 117.5, 120.0]
 
 const median = [7.2, 7.8, 8.3, 8.8, 9.3, 9.7, 10.2, 10.8, 11.4, 12.0, 12.6, 13.3, 13.9, 14.5, 15.2, 16.0, 16.8, 17.7, 18.6, 19.6, 20.7, 21.7, 22.8]
+const plus1sd = [7.9, 8.5, 9.1, 9.7, 10.2, 10.7, 11.2, 11.8, 12.5, 13.2, 13.8, 14.5, 15.2, 15.9, 16.7, 17.5, 18.4, 19.4, 20.5, 21.6, 22.8, 24.0, 25.2]
 const plus2sd = [8.7, 9.4, 10.0, 10.6, 11.2, 11.7, 12.3, 13.0, 13.7, 14.5, 15.2, 16.0, 16.7, 17.5, 18.4, 19.3, 20.3, 21.4, 22.6, 23.9, 25.2, 26.6, 28.0]
 const plus3sd = [9.7, 10.4, 11.1, 11.7, 12.3, 12.9, 13.6, 14.3, 15.1, 15.9, 16.8, 17.6, 18.5, 19.3, 20.3, 21.4, 22.5, 23.7, 25.1, 26.5, 28.1, 29.6, 31.2]
+const minus1sd = [6.6, 7.1, 7.6, 8.1, 8.5, 8.9, 9.4, 9.9, 10.4, 11.0, 11.6, 12.1, 12.7, 13.3, 13.9, 14.6, 15.3, 16.1, 17.0, 17.9, 18.8, 19.8, 20.7]
 const minus2sd = [6.1, 6.5, 7.0, 7.4, 7.8, 8.2, 8.6, 9.1, 9.6, 10.1, 10.6, 11.2, 11.7, 12.2, 12.8, 13.4, 14.0, 14.7, 15.5, 16.3, 17.2, 18.0, 18.9]
 const minus3sd = [5.6, 6.0, 6.4, 6.8, 7.2, 7.5, 7.9, 8.4, 8.8, 9.3, 9.8, 10.3, 10.8, 11.2, 11.7, 12.3, 12.9, 13.5, 14.2, 15.0, 15.7, 16.5, 17.3]
 
@@ -22,11 +26,14 @@ const option = {
     text: 'กราฟแสดงน้ำหนักตามเกณฑ์ความยาว (Weight-for-height) ของเด็กอายุ 2 - 5 ปี (หญิง)',
     left: 'center'
   },
-  // tooltip: {
-  //   trigger: 'axis'
-  // },
+  tooltip: {
+    trigger: 'item',
+    axisPointer: {
+      type: 'cross'
+    }
+  },
   legend: {
-    data: ['-3SD', '-2SD', 'Median', '+2SD', '+3SD'],
+    data: ['-3SD', '-2SD', '-1SD', 'Median', '+1SD', '+2SD', '+3SD'],
     top: 40
   },
   xAxis: {
@@ -62,9 +69,9 @@ const option = {
       name: '-3SD',
       type: 'line',
       data: xData.map((x, i) => [x, minus3sd[i]]),
-      itemStyle: { color: '#ff9933' },
-      areaStyle: { color: 'rgba(255,153,51)' },
-      zlevel: 5,
+      lineStyle: { color: '#ffaa66' },
+      areaStyle: { color: '#ffaa66' },
+      zlevel: 6,
       showSymbol: false,
       endLabel: {
         show: true,
@@ -78,9 +85,9 @@ const option = {
       name: '-2SD',
       type: 'line',
       data: xData.map((x, i) => [x, minus2sd[i]]),
-      itemStyle: { color: '#ffaa66' },
-      areaStyle: { color: 'rgba(255,200,100)' },
-      zlevel: 4,
+      lineStyle: { color: '#FFC864' },
+      areaStyle: { color: '#FFC864' },
+      zlevel: 5,
       showSymbol: false,
       endLabel: {
         show: true,
@@ -91,12 +98,28 @@ const option = {
       }
     },
     {
+      name: '-1SD',
+      type: 'line',
+      data: xData.map((x, i) => [x, minus1sd[i]]),
+      lineStyle: { color: 'gray' },
+      areaStyle: { color: 'white' },
+      zlevel: 4,
+      showSymbol: false,
+      endLabel: {
+        show: true,
+        formatter: (params) => params.seriesName,
+        color: 'gray',
+        fontSize: 12,
+        fontWeight: 'bold'
+      }
+    },
+    {
       name: 'Median',
       type: 'line',
       data: xData.map((x, i) => [x, median[i]]),
-      itemStyle: { color: '#00aa00', width: 2, type: 'dashed' },
+      lineStyle: { color: '#00aa00', width: 2, type: 'dashed' },
       areaStyle: { color: 'white' },
-      zlevel: 3,
+      zlevel: 4,
       showSymbol: false,
       endLabel: {
         show: true,
@@ -107,12 +130,28 @@ const option = {
       }
     },
     {
+      name: '+1SD',
+      type: 'line',
+      data: xData.map((x, i) => [x, plus1sd[i]]),
+      lineStyle: { color: 'gray' },
+      areaStyle: { color: 'white' },
+      zlevel: 4,
+      showSymbol: false,
+      endLabel: {
+        show: true,
+        formatter: (params) => params.seriesName,
+        color: 'gray',
+        fontSize: 12,
+        fontWeight: 'bold'
+      }
+    },
+    {
       name: '+2SD',
       type: 'line',
       data: xData.map((x, i) => [x, plus2sd[i]]),
-      itemStyle: { color: '#6666ff' },
-      areaStyle: { color: 'white' },
-      zlevel: 2,
+      lineStyle: { color: '#6666ff' },
+      areaStyle: { color: '#E6E6FF' },
+      zlevel: 3,
       showSymbol: false,
       endLabel: {
         show: true,
@@ -126,8 +165,9 @@ const option = {
       name: '+3SD',
       type: 'line',
       data: xData.map((x, i) => [x, plus3sd[i]]),
-      itemStyle: { color: '#0000ff' },
-      areaStyle: { color: 'rgba(100,100,255)' },
+      lineStyle: { color: '#0000ff' },
+      areaStyle: { color: '#B8B8FF' },
+      zlevel: 2,
       showSymbol: false,
       endLabel: {
         show: true,
@@ -137,11 +177,19 @@ const option = {
         fontWeight: 'bold'
       }
     },
+    {
+      name: '+3SD',
+      type: 'line',
+      data: bgGraphData,
+      lineStyle: { opacity: 0 },
+      areaStyle: { color: '#5C5CFF' },
+      showSymbol: false,
+    },
     // {
     //   name: 'เด็ก',
     //   type: 'scatter',
     //   data: childData,
-    //   symbolSize: 10,
+    //   symbolSize: 8,
     //   itemStyle: { color: 'black' },
     //   zlevel: 90,
     // }
@@ -154,7 +202,6 @@ const option = {
       zlevel: 100,
       style: {
         text: 'ผอม',
-        //fill: '#ff9933', // สีเดียวกับโซน -3SD และ -2SD
         fontSize: 13,
         fontWeight: 'bold'
       }
@@ -166,7 +213,6 @@ const option = {
       zlevel: 100,
       style: {
         text: 'ค่อนข้างผอม',
-        //fill: '#ff9933', // สีเดียวกับโซน -3SD และ -2SD
         fontSize: 13,
         fontWeight: 'bold'
       }
@@ -174,23 +220,30 @@ const option = {
     {
       type: 'text',
       right: '15%',
-      top: '34%',
+      top: '35%',
       zlevel: 100,
       style: {
-        text: 'สมส่วน',
-        //fill: '#00aa00', // สีเดียวกับเส้น Median
-        fontSize: 13,
+        text: 'สมส่วน', fontSize: 13,
         fontWeight: 'bold'
       }
     },
     {
       type: 'text',
       right: '15%',
-      top: '22%',
+      top: '27%',
+      zlevel: 100,
+      style: {
+        text: 'ท้วม', fontSize: 13,
+        fontWeight: 'bold'
+      }
+    },
+    {
+      type: 'text',
+      right: '15%',
+      top: '21.5%',
       zlevel: 100,
       style: {
         text: 'เริ่มอ้วน',
-        //fill: '#6666ff', // สีเดียวกับโซน +2SD และ +3SD
         fontSize: 13,
         fontWeight: 'bold'
       }
@@ -202,7 +255,6 @@ const option = {
       zlevel: 100,
       style: {
         text: 'อ้วน',
-        //fill: '#6666ff', // สีเดียวกับโซน +2SD และ +3SD
         fontSize: 13,
         fontWeight: 'bold'
       }
