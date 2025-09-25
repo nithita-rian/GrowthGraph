@@ -1,5 +1,5 @@
 <template>
-  <div class="w-full mx-auto my-8 p-4 container">
+  <div class="container">
     <div class="space-y-4">
       <h1 class="text-3xl font-bold">📊 Professional Growth Dashboard</h1>
 
@@ -13,21 +13,21 @@
       <!-- <h3>ตัวอย่างข้อมูล (20 แถว/หน้า)</h3> -->
       <div class="table-container">
         <table v-if="pagedData.length > 0">
-          <thead class="bg-gray-100 ">
+          <thead>
             <tr>
-              <th v-for="h in tableHeaders" :key="h" class="sticky top-0 z-10 border px-2 py-1 bg-gray-100">{{ h }}</th>
-              <th class="sticky top-0 z-10 border px-2 py-1 bg-gray-100">H/A Status</th>
-              <th class="sticky top-0 z-10 border px-2 py-1 bg-gray-100">H/A Recommendation</th>
-              <th class="sticky top-0 z-10 border px-2 py-1 bg-gray-100">W/A Status</th>
-              <th class="sticky top-0 z-10 border px-2 py-1 bg-gray-100">W/A Recommendation</th>
-              <th class="sticky top-0 z-10 border px-2 py-1 bg-gray-100">W/H Status</th>
-              <th class="sticky top-0 z-10 border px-2 py-1 bg-gray-100">W/H Recommendation</th>
+              <th v-for="h in tableHeaders" :key="h">{{ h }}</th>
+              <th>H/A Status</th>
+              <th>H/A Recommendation</th>
+              <th>W/A Status</th>
+              <th>W/A Recommendation</th>
+              <th>W/H Status</th>
+              <th>W/H Recommendation</th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="row in pagedData" :key="row.personID + '-' + row.age_month"
               :class="{ highlight: selectedPersonIDs.includes(String(row.personID)) }">
-              <td v-for="h in tableHeaders" :key="h" class="p-2">{{ row[h] }}</td>
+              <td v-for="h in tableHeaders" :key="h">{{ row[h] }}</td>
               <td :class="statusClass(row.HA_Status)">{{ row.HA_Status }}</td>
               <td>{{ row.HA_Rec }}</td>
               <td :class="statusClass(row.WA_Status)">{{ row.WA_Status }}</td>
@@ -43,7 +43,7 @@
       <!-- Pagination -->
       <!-- v-if="totalPages > 1" -->
       <div class="pagination space-x-2">
-        <button @click="changePage(currentPage - 1)" :disabled="currentPage === 1" class="hover:cursor-pointer">
+        <button @click="changePage(currentPage - 1)" :disabled="currentPage === 1">
           ⬅️ ก่อนหน้า
         </button>
         <button v-for="i in totalPages" :key="i" @click="changePage(i)" :disabled="i === currentPage"
@@ -51,16 +51,16 @@
           class="px-3 py-1 rounded">
           {{ i }}
         </button>
-        <button @click="changePage(currentPage + 1)" :disabled="currentPage === totalPages" class="hover:cursor-pointer">
+        <button @click="changePage(currentPage + 1)" :disabled="currentPage === totalPages">
           ถัดไป ➡️
         </button>
       </div>
 
       <!-- Person Select -->
-      <div v-if="pagedData.length > 0" class="p-2">
-        <h3 class="text-lg font-blod mb-2">เลือกผู้ป่วย (PersonID)</h3>
-        <select multiple v-model="selectedPersonIDs" class="p-4 w-full h-50 border-2 border-solid border-gray-400 rounded-lg">
-          <option v-for="person in personOptions" :key="person.id" :value="person.id" class="p-2 hover:bg-gray-100 hover:cursor-pointer">
+      <div v-if="pagedData.length > 0">
+        <h3>เลือกผู้ป่วย (PersonID)</h3>
+        <select multiple v-model="selectedPersonIDs">
+          <option v-for="person in personOptions" :key="person.id" :value="person.id">
             {{ person.name }} ({{ person.id }})
           </option>
         </select>
@@ -68,9 +68,16 @@
     </div>
 
     <!-- Charts -->
-    <div class="p-2">
-      <WFAChartGirl0To10 :childData="childWeightSelected" />
+    <!-- <div id="chartHeight" class="chart-container"></div>
+    <div id="chartWeight" class="chart-container"></div>
+    <div id="chartWFH" class="chart-container"></div> -->
+    <!-- Charts -->
+    <div class="m-2 p-2">
+      <WFAChartGirl510 :childData="childWeightSelected" />
     </div>
+    <!-- <div class="m-2 p-2">
+        <HFAChartGirl510 :childData="childHeightSelected" />
+    </div> -->
   </div>
 </template>
 
@@ -236,6 +243,7 @@ watch(selectedPersonIDs, (newVal) => {
     .map(item => [item.age_month, item.weight])
   //console.log('selectedData selectedPersonIDs :>> ', selectedData);
   //console.log('childWeightSelected.value selectedPersonIDs :>> ', childWeightSelected.value);
+  // plotComparison(selectedData);
 });
 
 
@@ -302,15 +310,36 @@ function plotComparison(data) {
     name: "WHO -2SD",
     line: { color: "red", dash: "dot" },
   });
+
+  // $plotly.newPlot("chartHeight", tracesHA, {
+  //   title: "Height-for-Age (H/A)",
+  //   xaxis: { title: "Age (months)" },
+  //   yaxis: { title: "Height (cm)" },
+  //   template: "plotly_white",
+  // });
+
+  // $plotly.newPlot("chartWeight", tracesWA, {
+  //   title: "Weight-for-Age (W/A)",
+  //   xaxis: { title: "Age (months)" },
+  //   yaxis: { title: "Weight (kg)" },
+  //   template: "plotly_white",
+  // });
+
+  // $plotly.newPlot("chartWFH", tracesWFH, {
+  //   title: "Weight-for-Height (W/H)",
+  //   xaxis: { title: "Height (cm)" },
+  //   yaxis: { title: "Weight (kg)" },
+  //   template: "plotly_white",
+  // });
 }
 </script>
 
 <style>
-/* .container {
+.container {
   max-width: 1200px;
   margin: auto;
   padding: 20px;
-} */
+}
 
 .table-container {
   overflow-x: auto;
