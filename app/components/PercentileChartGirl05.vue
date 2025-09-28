@@ -6,6 +6,10 @@ import { GraphicComponent } from 'echarts/components';
 import * as echarts from 'echarts/core';
 echarts.use([GraphicComponent]);
 
+const props = defineProps({
+  childData: Array,
+})
+
 const bgGraphData = [45, 120]
 
 // ข้อมูลตัวอย่าง percentile (แทนที่ด้วยข้อมูลจริงจาก WHO หรือ กรมอนามัยได้)
@@ -21,250 +25,268 @@ const minus3sd = [1.9, 2.2, 2.6, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 5.9, 6.3, 6.7, 7.
 
 const childData = [[95, 14]]
 
-const option = {
-  title: {
-    text: 'กราฟแสดงน้ำหนักตามเกณฑ์ความยาว (Weight-for-height) ของเด็กอายุ 0 - 5 ปี (หญิง)',
-    left: 'center'
-  },
-  tooltip: {
-    trigger: 'axis',
-    axisPointer: {
-      type: 'cross'
-    }
-  },
-  legend: {
-    data: ['-3SD', '-2SD', '-1SD', 'Median', '+1SD', '+2SD', '+3SD'],
-    top: 40
-  },
-  xAxis: {
-    type: 'value',
-    name: 'ความยาว (เซนติเมตร)',
-    nameLocation: 'middle',
-    nameGap: 40,
-    nameTextStyle: {
-      fontSize: 16,
-      fontWeight: 'bold',
+const option = ref(null)
+
+// ฟังก์ชัน render chart
+const updateOption = () => {
+  option.value = {
+    title: {
+      text: 'กราฟแสดงน้ำหนักตามเกณฑ์ความยาว (Weight-for-height) ของเด็กอายุ 0 - 5 ปี',
+      left: 'center'
     },
-    type: 'value',
-    min: 45,
-    max: 120,
-    interval: 2,
-  },
-  // --- ตั้งค่าแกน Y ---
-  yAxis: {
-    name: 'น้ำหนัก (กิโลกรัม)',
-    nameLocation: 'middle',
-    nameGap: 40,
-    nameTextStyle: {
-      fontSize: 16,
-      fontWeight: 'bold',
-    },
-    type: 'value',
-    min: 0,
-    max: 32,
-    interval: 2,
-  },
-  series: [
-    {
-      name: '-3SD',
-      type: 'line',
-      data: xData.map((x, i) => [x, minus3sd[i]]),
-      lineStyle: { color: '#ffaa66' },
-      areaStyle: { color: '#ffaa66' },
-      zlevel: 6,
-      showSymbol: false,
-      endLabel: {
-        show: true,
-        formatter: (params) => params.seriesName,
-        color: '#ff9933',
-        fontSize: 12,
-        fontWeight: 'bold'
+    tooltip: {
+      trigger: 'axis',
+      axisPointer: {
+        type: 'cross'
       }
     },
-    {
-      name: '-2SD',
-      type: 'line',
-      data: xData.map((x, i) => [x, minus2sd[i]]),
-      lineStyle: { color: '#FFC864' },
-      areaStyle: { color: '#FFC864' },
-      zlevel: 5,
-      showSymbol: false,
-      endLabel: {
-        show: true,
-        formatter: (params) => params.seriesName,
-        color: '#ffaa66',
-        fontSize: 12,
-        fontWeight: 'bold'
+    legend: {
+      data: ['-3SD', '-2SD', '-1SD', 'Median', '+1SD', '+2SD', '+3SD'],
+      top: 40
+    },
+    xAxis: {
+      type: 'value',
+      name: 'ความยาว (เซนติเมตร)',
+      nameLocation: 'middle',
+      nameGap: 40,
+      nameTextStyle: {
+        fontSize: 16,
+        fontWeight: 'bold',
+      },
+      type: 'value',
+      min: 45,
+      max: 120,
+      interval: 5,
+    },
+    // --- ตั้งค่าแกน Y ---
+    yAxis: {
+      name: 'น้ำหนัก (กิโลกรัม)',
+      nameLocation: 'middle',
+      nameGap: 40,
+      nameTextStyle: {
+        fontSize: 16,
+        fontWeight: 'bold',
+      },
+      type: 'value',
+      min: 0,
+      max: 32,
+      interval: 2,
+    },
+    series: [
+      {
+        name: '-3SD',
+        type: 'line',
+        data: xData.map((x, i) => [x, minus3sd[i]]),
+        lineStyle: { color: '#ffaa66' },
+        areaStyle: { color: '#ffaa66' },
+        zlevel: 6,
+        showSymbol: false,
+        endLabel: {
+          show: true,
+          formatter: (params) => params.seriesName,
+          color: '#ff9933',
+          fontSize: 12,
+          fontWeight: 'bold'
+        }
+      },
+      {
+        name: '-2SD',
+        type: 'line',
+        data: xData.map((x, i) => [x, minus2sd[i]]),
+        lineStyle: { color: '#FFC864' },
+        areaStyle: { color: '#FFC864' },
+        zlevel: 5,
+        showSymbol: false,
+        endLabel: {
+          show: true,
+          formatter: (params) => params.seriesName,
+          color: '#ffaa66',
+          fontSize: 12,
+          fontWeight: 'bold'
+        }
+      },
+      {
+        name: '-1SD',
+        type: 'line',
+        data: xData.map((x, i) => [x, minus1sd[i]]),
+        lineStyle: { color: 'gray' },
+        areaStyle: { color: 'white' },
+        zlevel: 4,
+        showSymbol: false,
+        endLabel: {
+          show: true,
+          formatter: (params) => params.seriesName,
+          color: 'gray',
+          fontSize: 12,
+          fontWeight: 'bold'
+        }
+      },
+      {
+        name: 'Median',
+        type: 'line',
+        data: xData.map((x, i) => [x, median[i]]),
+        lineStyle: { color: '#00aa00', width: 2, type: 'dashed' },
+        areaStyle: { color: 'white' },
+        zlevel: 4,
+        showSymbol: false,
+        endLabel: {
+          show: true,
+          formatter: (params) => params.seriesName,
+          color: '#00aa00',
+          fontSize: 12,
+          fontWeight: 'bold'
+        }
+      },
+      {
+        name: '+1SD',
+        type: 'line',
+        data: xData.map((x, i) => [x, plus1sd[i]]),
+        lineStyle: { color: 'gray' },
+        areaStyle: { color: 'white' },
+        zlevel: 4,
+        showSymbol: false,
+        endLabel: {
+          show: true,
+          formatter: (params) => params.seriesName,
+          color: 'gray',
+          fontSize: 12,
+          fontWeight: 'bold'
+        }
+      },
+      {
+        name: '+2SD',
+        type: 'line',
+        data: xData.map((x, i) => [x, plus2sd[i]]),
+        lineStyle: { color: '#6666ff' },
+        areaStyle: { color: '#E6E6FF' },
+        zlevel: 3,
+        showSymbol: false,
+        endLabel: {
+          show: true,
+          formatter: (params) => params.seriesName,
+          color: '#6666ff',
+          fontSize: 12,
+          fontWeight: 'bold'
+        }
+      },
+      {
+        name: '+3SD',
+        type: 'line',
+        data: xData.map((x, i) => [x, plus3sd[i]]),
+        lineStyle: { color: '#0000ff' },
+        areaStyle: { color: '#B8B8FF' },
+        zlevel: 2,
+        showSymbol: false,
+        endLabel: {
+          show: true,
+          formatter: (params) => params.seriesName,
+          color: '#0000ff',
+          fontSize: 12,
+          fontWeight: 'bold'
+        }
+      },
+      {
+        name: '+3SD',
+        type: 'line',
+        data: bgGraphData,
+        lineStyle: { opacity: 0 },
+        areaStyle: { color: '#5C5CFF' },
+        showSymbol: false,
+      },
+      {
+        name: 'เด็ก',
+        type: 'line',
+        data: props.childData,
+        symbolSize: 8,
+        itemStyle: { color: 'black' },
+        lineStyle: { color: 'black', width: 2 },
+        showSymbol: true,         // แสดงจุดบนเส้น
+        zlevel: 90,
       }
-    },
-    {
-      name: '-1SD',
-      type: 'line',
-      data: xData.map((x, i) => [x, minus1sd[i]]),
-      lineStyle: { color: 'gray' },
-      areaStyle: { color: 'white' },
-      zlevel: 4,
-      showSymbol: false,
-      endLabel: {
-        show: true,
-        formatter: (params) => params.seriesName,
-        color: 'gray',
-        fontSize: 12,
-        fontWeight: 'bold'
-      }
-    },
-    {
-      name: 'Median',
-      type: 'line',
-      data: xData.map((x, i) => [x, median[i]]),
-      lineStyle: { color: '#00aa00', width: 2, type: 'dashed' },
-      areaStyle: { color: 'white' },
-      zlevel: 4,
-      showSymbol: false,
-      endLabel: {
-        show: true,
-        formatter: (params) => params.seriesName,
-        color: '#00aa00',
-        fontSize: 12,
-        fontWeight: 'bold'
-      }
-    },
-    {
-      name: '+1SD',
-      type: 'line',
-      data: xData.map((x, i) => [x, plus1sd[i]]),
-      lineStyle: { color: 'gray' },
-      areaStyle: { color: 'white' },
-      zlevel: 4,
-      showSymbol: false,
-      endLabel: {
-        show: true,
-        formatter: (params) => params.seriesName,
-        color: 'gray',
-        fontSize: 12,
-        fontWeight: 'bold'
-      }
-    },
-    {
-      name: '+2SD',
-      type: 'line',
-      data: xData.map((x, i) => [x, plus2sd[i]]),
-      lineStyle: { color: '#6666ff' },
-      areaStyle: { color: '#E6E6FF' },
-      zlevel: 3,
-      showSymbol: false,
-      endLabel: {
-        show: true,
-        formatter: (params) => params.seriesName,
-        color: '#6666ff',
-        fontSize: 12,
-        fontWeight: 'bold'
-      }
-    },
-    {
-      name: '+3SD',
-      type: 'line',
-      data: xData.map((x, i) => [x, plus3sd[i]]),
-      lineStyle: { color: '#0000ff' },
-      areaStyle: { color: '#B8B8FF' },
-      zlevel: 2,
-      showSymbol: false,
-      endLabel: {
-        show: true,
-        formatter: (params) => params.seriesName,
-        color: '#0000ff',
-        fontSize: 12,
-        fontWeight: 'bold'
-      }
-    },
-    {
-      name: '+3SD',
-      type: 'line',
-      data: bgGraphData,
-      lineStyle: { opacity: 0 },
-      areaStyle: { color: '#5C5CFF' },
-      showSymbol: false,
-    },
-    {
-      name: 'เด็ก',
-      type: 'scatter',
-      data: childData,
-      symbolSize: 8,
-      itemStyle: { color: 'black' },
-      zlevel: 90,
-    }
-  ],
-  graphic: [
-    {
-      type: 'text',
-      right: '15%',
-      top: '65%',
-      zlevel: 100,
-      style: {
-        text: 'ผอม',
-        fontSize: 13,
-        fontWeight: 'bold'
-      }
-    },
-    {
-      type: 'text',
-      right: '15%',
-      top: '49%',
-      zlevel: 100,
-      style: {
-        text: 'ค่อนข้างผอม',
-        fontSize: 13,
-        fontWeight: 'bold'
-      }
-    },
-    {
-      type: 'text',
-      right: '15%',
-      top: '37%',
-      zlevel: 100,
-      style: {
-        text: 'สมส่วน', fontSize: 13,
-        fontWeight: 'bold'
-      }
-    },
-    {
-      type: 'text',
-      right: '15%',
-      top: '29%',
-      zlevel: 100,
-      style: {
-        text: 'ท้วม', fontSize: 13,
-        fontWeight: 'bold'
-      }
-    },
-    {
-      type: 'text',
-      right: '15%',
-      top: '24%',
-      zlevel: 100,
-      style: {
-        text: 'เริ่มอ้วน',
-        fontSize: 13,
-        fontWeight: 'bold'
-      }
-    },
-    {
-      type: 'text',
-      right: '15%',
-      top: '15%',
-      zlevel: 100,
-      style: {
-        text: 'อ้วน',
-        fontSize: 13,
-        fontWeight: 'bold'
-      }
-    },
-  ]
+    ],
+    graphic: [
+      {
+        type: 'text',
+        right: '15%',
+        top: '65%',
+        zlevel: 100,
+        style: {
+          text: 'ผอม',
+          fontSize: 13,
+          fontWeight: 'bold'
+        }
+      },
+      {
+        type: 'text',
+        right: '15%',
+        top: '49%',
+        zlevel: 100,
+        style: {
+          text: 'ค่อนข้างผอม',
+          fontSize: 13,
+          fontWeight: 'bold'
+        }
+      },
+      {
+        type: 'text',
+        right: '15%',
+        top: '37%',
+        zlevel: 100,
+        style: {
+          text: 'สมส่วน', fontSize: 13,
+          fontWeight: 'bold'
+        }
+      },
+      {
+        type: 'text',
+        right: '15%',
+        top: '29%',
+        zlevel: 100,
+        style: {
+          text: 'ท้วม', fontSize: 13,
+          fontWeight: 'bold'
+        }
+      },
+      {
+        type: 'text',
+        right: '15%',
+        top: '24%',
+        zlevel: 100,
+        style: {
+          text: 'เริ่มอ้วน',
+          fontSize: 13,
+          fontWeight: 'bold'
+        }
+      },
+      {
+        type: 'text',
+        right: '15%',
+        top: '15%',
+        zlevel: 100,
+        style: {
+          text: 'อ้วน',
+          fontSize: 13,
+          fontWeight: 'bold'
+        }
+      },
+    ]
+  }
 }
+
+// อัปเดต option หลัง client mount
+onMounted(updateOption)
+
+// watch childData
+watch(() => props.childData, updateOption, { deep: true })
 </script>
 
 <template>
   <div class="w-full h-[700px]">
-    <VChart :option="option" autoresize />
+    <client-only>
+      <VChart v-if="option" :option="option" autoresize />
+    </client-only>
   </div>
+  <!-- <div class="w-full h-[700px]">
+    <VChart :option="option" autoresize />
+  </div> -->
 </template>

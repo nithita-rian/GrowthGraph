@@ -32,22 +32,18 @@ echarts.use([
     CanvasRenderer
 ])
 
-
-const chartRef = ref(null)
-let chart = null
-
-const bgGraphData = [60, 120]
+const bgGraphData = [[0, 160], [160, 160]]
 
 // ข้อมูลตัวอย่าง percentile (แทนที่ด้วยข้อมูลจริงจาก WHO หรือ กรมอนามัยได้)
-const xData = [60, 65, 70, 75, 80, 85, 90, 95, 100, 105, 110, 115, 120]
+const xData = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105, 110, 115, 120]
 
-const median = [18.258, 18.954, 19.818, 20.688, 21.598, 22.576, 23.637, 24.785, 26.028, 27.364, 28.779, 30.272, 31.858]
-const plus1sd = [21.169, 22.032, 23.108, 24.199, 25.343, 26.574, 27.908, 29.352, 30.914, 32.591, 34.367, 36.238, 38.223]
-const plus2sd = [24.817, 25.911, 27.288, 28.695, 30.176, 31.773, 33.507, 35.383, 37.412, 39.589, 41.895, 44.321, 46.89]
-const plus3sd = [29.468, 30.893, 32.708, 34.581, 36.568, 38.719, 41.058, 43.596, 46.343, 49.293, 52.419, 55.705, 59.177]
-const minus1sd = [15.899, 16.473, 17.182, 17.893, 18.635, 19.433, 20.299, 21.238, 22.254, 23.347, 24.506, 25.729, 27.031]
-const minus2sd = [13.961, 14.444, 15.038, 15.632, 16.25, 16.916, 17.639, 18.424, 19.274, 20.188, 21.158, 22.183, 23.274]
-const minus3sd = [12.352, 12.764, 13.27, 13.775, 14.301, 14.867, 15.483, 16.151, 16.875, 17.655, 18.482, 19.355, 20.286]
+const median = [49.1, 64.0, 71.5, 77.5, 82.7, 86.6, 90.7, 94.4, 97.7, 100.9, 103.9, 106.7, 109.4, 111.67, 114.156, 116.557, 118.921, 121.284, 123.665, 126.071, 128.511, 130.989, 133.505, 136.053, 138.636]
+const plus1sd = [51.0, 66.2, 73.9, 80.2, 85.7, 89.9, 94.2, 98.1, 101.7, 105.1, 108.3, 111.3, 114.2, 116.572, 119.215, 121.766, 124.275, 126.78, 129.299, 131.841, 134.415, 137.024, 139.665, 142.335, 145.033]
+const plus2sd = [52.9, 68.5, 76.4, 83.0, 88.7, 93.1, 97.7, 101.9, 105.7, 109.3, 112.7, 115.9, 118.9, 121.474, 124.273, 126.975, 129.628, 132.275, 134.933, 137.611, 140.318, 143.058, 145.824, 148.616, 151.43]
+const plus3sd = [54.7, 70.7, 78.9, 85.7, 91.7, 96.4, 101.3, 105.6, 109.7, 113.5, 117.1, 120.4, 123.7, 126.376, 129.331, 132.184, 134.982, 137.77, 140.567, 143.381, 146.222, 149.093, 151.984, 154.898, 157.826]
+const minus1sd = [47.3, 61.8, 69.0, 74.8, 79.7, 83.3, 87.1, 90.6, 93.8, 96.7, 99.5, 102.2, 104.7, 106.767, 109.098, 111.348, 113.567, 115.789, 118.03, 120.3, 122.607, 124.954, 127.345, 129.772, 132.24]
+const minus2sd = [45.4, 59.6, 66.5, 72.0, 76.7, 80.0, 83.6, 86.8, 89.8, 92.5, 95.1, 97.6, 99.9, 101.865, 104.04, 106.139, 108.213, 110.294, 112.396, 114.53, 116.703, 118.92, 121.185, 123.49, 125.843]
+const minus3sd = [43.6, 57.4, 64.1, 69.3, 73.7, 76.8, 80.1, 83.1, 85.8, 88.4, 90.7, 93.0, 95.2, 96.963, 98.982, 100.93, 102.859, 104.798, 106.762, 108.76, 110.8, 112.885, 115.025, 117.209, 119.446]
 
 const option = ref(null)
 
@@ -55,7 +51,7 @@ const option = ref(null)
 const updateOption = () => {
     option.value = {
         title: {
-            text: 'กราฟแสดงน้ำหนักตามเกณฑ์ของอายุ (Weight-for-age) ของเด็กอายุ 5 - 10 ปี',
+            text: 'กราฟแสดงส่วนสูงตามเกณฑ์ของอายุ (Height-for-age) ของเด็กอายุ 0 - 10 ปี',
             left: 'center'
         },
         tooltip: {
@@ -78,13 +74,13 @@ const updateOption = () => {
                 fontWeight: 'bold',
             },
             type: 'value',
-            min: 60,
+            min: 0,
             max: 120,
             interval: 5,
         },
         // --- ตั้งค่าแกน Y ---
         yAxis: {
-            name: 'น้ำหนัก (กิโลกรัม)',
+            name: 'ส่วนสูง (เซนติเมตร)',
             nameLocation: 'middle',
             nameGap: 40,
             nameTextStyle: {
@@ -92,9 +88,9 @@ const updateOption = () => {
                 fontWeight: 'bold',
             },
             type: 'value',
-            min: 10,
-            max: 60,
-            interval: 5,
+            min: 40,
+            max: 160,
+            interval: 10,
         },
         series: [
             {
@@ -165,7 +161,7 @@ const updateOption = () => {
                 name: '+1SD',
                 type: 'line',
                 data: xData.map((x, i) => [x, plus1sd[i]]),
-                lineStyle: { color: '#DBDBDB' },
+                lineStyle: { color: '#6666ff' },
                 areaStyle: { color: 'white' },
                 zlevel: 4,
                 showSymbol: false,
@@ -181,7 +177,7 @@ const updateOption = () => {
                 name: '+2SD',
                 type: 'line',
                 data: xData.map((x, i) => [x, plus2sd[i]]),
-                lineStyle: { color: '#6666ff' },
+                lineStyle: { color: '#6666ff', width: 0 },
                 areaStyle: { color: '#E6E6FF' },
                 zlevel: 3,
                 showSymbol: false,
@@ -210,7 +206,7 @@ const updateOption = () => {
                 }
             },
             {
-                name: '+3SD',
+                name: 'BG',
                 type: 'line',
                 data: bgGraphData,
                 lineStyle: { opacity: 0 },
@@ -232,64 +228,64 @@ const updateOption = () => {
             {
                 type: 'text',
                 right: '20%',
-                top: '80%',
+                top: '60%',
                 zlevel: 100,
                 style: {
-                    text: 'ผอม',
-                    fontSize: 13,
+                    text: 'เตี้ย',
+                    fontSize: 16,
                     fontWeight: 'bold'
                 }
             },
             {
                 type: 'text',
                 right: '20%',
-                top: '72%',
+                top: '39%',
                 zlevel: 100,
                 style: {
-                    text: 'ค่อนข้างผอม',
-                    fontSize: 13,
+                    text: 'ค่อนข้างเตี้ย',
+                    fontSize: 14,
                     fontWeight: 'bold'
                 }
             },
             {
                 type: 'text',
                 right: '20%',
-                top: '55%',
+                top: '30%',
                 zlevel: 100,
                 style: {
-                    text: 'สมส่วน', fontSize: 13,
+                    text: 'สูงตามเกณฑ์', fontSize: 16,
+                    fontWeight: 'bold'
+                }
+            },
+            // {
+            //     type: 'text',
+            //     right: '20%',
+            //     top: '41%',
+            //     zlevel: 100,
+            //     style: {
+            //         text: 'ท้วม', fontSize: 16,
+            //         fontWeight: 'bold'
+            //     }
+            // },
+            {
+                type: 'text',
+                right: '20%',
+                top: '22%',
+                zlevel: 100,
+                style: {
+                    text: 'ค่อนข้างสูง',
+                    fontSize: 16,
                     fontWeight: 'bold'
                 }
             },
             {
                 type: 'text',
                 right: '20%',
-                top: '42%',
+                top: '12%',
                 zlevel: 100,
                 style: {
-                    text: 'ท้วม', fontSize: 13,
-                    fontWeight: 'bold'
-                }
-            },
-            {
-                type: 'text',
-                right: '20%',
-                top: '28%',
-                zlevel: 100,
-                style: {
-                    text: 'เริ่มอ้วน',
-                    fontSize: 13,
-                    fontWeight: 'bold'
-                }
-            },
-            {
-                type: 'text',
-                right: '20%',
-                top: '13%',
-                zlevel: 100,
-                style: {
-                    text: 'อ้วน',
-                    fontSize: 13,
+                    text: 'สูง',
+                    fontSize: 16,
                     fontWeight: 'bold'
                 }
             },

@@ -51,7 +51,7 @@ const option = ref(null)
 const updateOption = () => {
     option.value = {
         title: {
-            text: 'กราฟแสดงน้ำหนักตามเกณฑ์ของอายุ (Weight-for-age) ของเด็กอายุ 5 - 10 ปี',
+            text: 'กราฟแสดงน้ำหนักตามเกณฑ์ของอายุ (Weight-for-age) ของเด็กอายุ 0 - 10 ปี',
             left: 'center'
         },
         tooltip: {
@@ -161,7 +161,7 @@ const updateOption = () => {
                 name: '+1SD',
                 type: 'line',
                 data: xData.map((x, i) => [x, plus1sd[i]]),
-                lineStyle: { color: '#DBDBDB' },
+                lineStyle: { color: '#6666ff' },
                 areaStyle: { color: 'white' },
                 zlevel: 4,
                 showSymbol: false,
@@ -177,7 +177,7 @@ const updateOption = () => {
                 name: '+2SD',
                 type: 'line',
                 data: xData.map((x, i) => [x, plus2sd[i]]),
-                lineStyle: { color: '#6666ff' },
+                lineStyle: { color: '#6666ff', width: 0 },
                 areaStyle: { color: '#E6E6FF' },
                 zlevel: 3,
                 showSymbol: false,
@@ -231,7 +231,7 @@ const updateOption = () => {
                 top: '75%',
                 zlevel: 100,
                 style: {
-                    text: 'ผอม',
+                    text: 'น้ำหนักน้อย',
                     fontSize: 16,
                     fontWeight: 'bold'
                 }
@@ -242,38 +242,38 @@ const updateOption = () => {
                 top: '64%',
                 zlevel: 100,
                 style: {
-                    text: 'ค่อนข้างผอม',
-                    fontSize: 16,
+                    text: 'น้ำหนักค่อนข้างน้อย',
+                    fontSize: 14,
                     fontWeight: 'bold'
                 }
             },
             {
                 type: 'text',
                 right: '20%',
-                top: '51%',
+                top: '55%',
                 zlevel: 100,
                 style: {
-                    text: 'สมส่วน', fontSize: 16,
+                    text: 'น้ำหนักตามเกณฑ์', fontSize: 16,
                     fontWeight: 'bold'
                 }
             },
+            // {
+            //     type: 'text',
+            //     right: '20%',
+            //     top: '41%',
+            //     zlevel: 100,
+            //     style: {
+            //         text: 'ท้วม', fontSize: 16,
+            //         fontWeight: 'bold'
+            //     }
+            // },
             {
                 type: 'text',
                 right: '20%',
-                top: '41%',
+                top: '40%',
                 zlevel: 100,
                 style: {
-                    text: 'ท้วม', fontSize: 16,
-                    fontWeight: 'bold'
-                }
-            },
-            {
-                type: 'text',
-                right: '20%',
-                top: '32%',
-                zlevel: 100,
-                style: {
-                    text: 'เริ่มอ้วน',
+                    text: 'น้ำหนักค่อนข้างมาก',
                     fontSize: 16,
                     fontWeight: 'bold'
                 }
@@ -284,7 +284,7 @@ const updateOption = () => {
                 top: '15%',
                 zlevel: 100,
                 style: {
-                    text: 'อ้วน',
+                    text: 'น้ำหนักมาก',
                     fontSize: 16,
                     fontWeight: 'bold'
                 }

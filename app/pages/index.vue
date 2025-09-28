@@ -1,7 +1,7 @@
 <template>
   <div class="w-full mx-auto my-8 p-4 container">
     <div class="space-y-4">
-      <h1 class="text-3xl font-bold">📊 Professional Growth Dashboard</h1>
+      <h1 class="text-3xl font-bold">📊 Children Growth Dashboard</h1>
 
       <!-- Upload + Search + Export -->
       <div><input type="file" @change="onFileChange" accept=".csv" /></div>
@@ -16,24 +16,24 @@
           <thead class="bg-gray-100 ">
             <tr>
               <th v-for="h in tableHeaders" :key="h" class="sticky top-0 z-10 border px-2 py-1 bg-gray-100">{{ h }}</th>
-              <th class="sticky top-0 z-10 border px-2 py-1 bg-gray-100">H/A Status</th>
+              <!-- <th class="sticky top-0 z-10 border px-2 py-1 bg-gray-100">H/A Status</th>
               <th class="sticky top-0 z-10 border px-2 py-1 bg-gray-100">H/A Recommendation</th>
               <th class="sticky top-0 z-10 border px-2 py-1 bg-gray-100">W/A Status</th>
               <th class="sticky top-0 z-10 border px-2 py-1 bg-gray-100">W/A Recommendation</th>
               <th class="sticky top-0 z-10 border px-2 py-1 bg-gray-100">W/H Status</th>
-              <th class="sticky top-0 z-10 border px-2 py-1 bg-gray-100">W/H Recommendation</th>
+              <th class="sticky top-0 z-10 border px-2 py-1 bg-gray-100">W/H Recommendation</th> -->
             </tr>
           </thead>
           <tbody>
             <tr v-for="row in pagedData" :key="row.personID + '-' + row.age_month"
               :class="{ highlight: selectedPersonIDs.includes(String(row.personID)) }">
               <td v-for="h in tableHeaders" :key="h" class="p-2">{{ row[h] }}</td>
-              <td :class="statusClass(row.HA_Status)">{{ row.HA_Status }}</td>
+              <!-- <td :class="statusClass(row.HA_Status)">{{ row.HA_Status }}</td>
               <td>{{ row.HA_Rec }}</td>
               <td :class="statusClass(row.WA_Status)">{{ row.WA_Status }}</td>
               <td>{{ row.WA_Rec }}</td>
               <td :class="statusClass(row.WH_Status)">{{ row.WH_Status }}</td>
-              <td>{{ row.WH_Rec }}</td>
+              <td>{{ row.WH_Rec }}</td> -->
             </tr>
           </tbody>
         </table>
@@ -51,25 +51,48 @@
           class="px-3 py-1 rounded">
           {{ i }}
         </button>
-        <button @click="changePage(currentPage + 1)" :disabled="currentPage === totalPages" class="hover:cursor-pointer">
+        <button @click="changePage(currentPage + 1)" :disabled="currentPage === totalPages"
+          class="hover:cursor-pointer">
           ถัดไป ➡️
         </button>
       </div>
 
       <!-- Person Select -->
-      <div v-if="pagedData.length > 0" class="p-2">
-        <h3 class="text-lg font-blod mb-2">เลือกผู้ป่วย (PersonID)</h3>
-        <select multiple v-model="selectedPersonIDs" class="p-4 w-full h-50 border-2 border-solid border-gray-400 rounded-lg">
-          <option v-for="person in personOptions" :key="person.id" :value="person.id" class="p-2 hover:bg-gray-100 hover:cursor-pointer">
+      <div v-if="pagedData.length > 0" class="p-2 w-[50%]">
+        <h3 class="text-lg font-blod mb-2">เลือกเด็ก (PersonID)</h3>
+        <input type="text" placeholder="ค้นหาจากรหัส" v-model="selectedPersonIDs"
+          class="p-2 mb-2 border-2 border-solid border-gray-400 rounded-lg w-full" />
+        <select multiple v-model="selectedPersonIDs"
+          class="p-4 w-full h-50 border-2 border-solid border-gray-400 rounded-lg">
+          <option v-for="person in personOptions" :key="person.id" :value="person.id"
+            :class="{ highlight: selectedPersonIDs.includes(String(person.id)) }"
+            class="p-2 hover:bg-gray-100 hover:cursor-pointer">
             {{ person.name }} ({{ person.id }})
           </option>
         </select>
       </div>
     </div>
 
+    <!-- AI Bot -->
+    <div class="w-full flex justify-end p-2">
+      <button class="p-4 text-white bg-blue-400 border-2 rounded-2xl hover:bg-blue-600" @click="postAIBot"
+        :disabled="isLoading">
+        {{ isLoading ? 'กำลังประมวลผล...' : ' 💬 ปรึกษา AI Bot ' }}</button>
+    </div>
+    <div v-if="AIBotMessage" class="p-8 border-2 border-gray-400 rounded-lg h-[350px] overflow-y-auto whitespace-pre-wrap">
+      <div class="flex justify-end"><button class="p-2 mb-4 bg-red-700 rounded-lg text-white" @click="AIBotMessage = ''">ปิด</button></div>
+      <p>{{ AIBotMessage }}</p>
+    </div>
+
     <!-- Charts -->
     <div class="p-2">
       <WFAChartGirl0To10 :childData="childWeightSelected" />
+    </div>
+    <div class="p-2">
+      <HFAChartGirl0To10 :childData="childHeightSelected" />
+    </div>
+    <div class="p-2">
+      <PercentileChartGirl05 :childData="childWHSelected" />
     </div>
   </div>
 </template>
@@ -79,6 +102,7 @@ import Papa from "papaparse";
 // import Plotly from "plotly.js-dist";
 const { $plotly } = useNuxtApp()
 
+const isLoading = ref(false);
 const globalData = ref([]);
 const filteredData = ref([]);
 const currentPage = ref(1);
@@ -88,16 +112,9 @@ const searchQuery = ref("");
 const personOptions = ref([]);
 const childWeightSelected = ref([]);
 const childHeightSelected = ref([]);
-// Colors
-const colors = [
-  "#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd",
-  "#8c564b", "#e377c2", "#7f7f7f", "#bcbd22", "#17becf"
-];
-
-// WHO reference data (ตัดมาเฉพาะส่วนสำคัญ)
-const whoHA = { x: [0, 12, 24, 36, 48, 60], mean: [50, 75, 87, 95, 102, 107], sd2: [6, 6, 6, 6, 6, 6] };
-const whoWA = { x: [0, 12, 24, 36, 48, 60], mean: [3.3, 9, 11.5, 13.5, 15, 16.5], sd2: [0.5, 1, 1, 1, 1, 1] };
-const whoWH = { x: [45, 50, 55, 60, 65, 70], mean: [2.5, 3, 3.5, 4, 5, 6], sd2: [0.5, 0.5, 0.5, 0.5, 0.5, 0.5] };
+const childWHSelected = ref([]);
+const childAllData = ref(null);
+const AIBotMessage = ref("");
 
 // --- File Upload ---
 const onFileChange = (e) => {
@@ -118,6 +135,106 @@ const onFileChange = (e) => {
     },
   });
 };
+
+// --- Search ---
+const onSearch = () => {
+  const val = searchQuery.value.toLowerCase();
+  filteredData.value = globalData.value.filter(
+    (d) =>
+      (d.firstName && d.firstName.toLowerCase().includes(val)) ||
+      (d.lastName && d.lastName.toLowerCase().includes(val)) ||
+      (d.personID && String(d.personID).includes(val))
+  );
+  currentPage.value = 1;
+};
+
+const onSelect = (id) => {
+  filteredData.value = globalData.value.filter(
+    (d) =>
+      (d.personID && String(d.personID).includes(id))
+  );
+  currentPage.value = 1;
+};
+
+// --- Plot ---
+const plotGraph = (data) => {
+  childAllData.value = data
+    .map(item => [{
+      firstname: item.firstName,
+      lastname: item.lastName,
+      personID: item.personID,
+      height: item.height,
+      weight: item.weight,
+      wa_analysis: item.wa_analysis,
+      ha_analysis: item.ha_analysis,
+      wfh_analysis: item.wfh_analysis,
+      age_month: item.age_month
+    }])
+
+  childWeightSelected.value = data
+    .filter(item => item.age_month != null && item.weight != null)
+    .map(item => [item.age_month, item.weight])
+  childHeightSelected.value = data
+    .filter(item => item.age_month != null && item.height != null)
+    .map(item => [item.age_month, item.height])
+
+  childWHSelected.value = data
+    .filter(item => item.height != null && item.weight != null)
+    .map(item => [item.height, item.weight])
+}
+
+// --- Watch & Select ---
+watch(selectedPersonIDs, (newVal) => {
+  const selectedData = globalData.value.filter((d) =>
+    newVal.includes(String(d.personID))
+  );
+  plotGraph(selectedData);
+  onSelect(selectedData[0]?.personID || "");
+});
+
+// --- AI Bot ---
+const postAIBot = async () => {
+  const data = childAllData.value
+  try {
+    isLoading.value = true
+    const response = await $fetch('/api/api_llm', {
+      method: 'POST',
+      body: data,
+      throwOnError: true
+    })
+    console.log('postAIBot >>> ', response)
+    AIBotMessage.value = response.message
+  } catch (error) {
+    console.log(error)
+  } finally {
+    isLoading.value = false
+  }
+}
+
+// --- Pagination ---
+const totalPages = computed(() =>
+  Math.ceil(filteredData.value.length / rowsPerPage)
+);
+const pagedData = computed(() => {
+  const start = (currentPage.value - 1) * rowsPerPage;
+  return filteredData.value.slice(start, start + rowsPerPage);
+});
+
+function changePage(page) {
+  if (page < 1 || page > totalPages.value) return;
+  currentPage.value = page;
+}
+
+// Colors
+const colors = [
+  "#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd",
+  "#8c564b", "#e377c2", "#7f7f7f", "#bcbd22", "#17becf"
+];
+
+// WHO reference data (ตัดมาเฉพาะส่วนสำคัญ)
+const whoHA = { x: [0, 12, 24, 36, 48, 60], mean: [50, 75, 87, 95, 102, 107], sd2: [6, 6, 6, 6, 6, 6] };
+const whoWA = { x: [0, 12, 24, 36, 48, 60], mean: [3.3, 9, 11.5, 13.5, 15, 16.5], sd2: [0.5, 1, 1, 1, 1, 1] };
+const whoWH = { x: [45, 50, 55, 60, 65, 70], mean: [2.5, 3, 3.5, 4, 5, 6], sd2: [0.5, 0.5, 0.5, 0.5, 0.5, 0.5] };
 
 // --- Compute Recommendation ---
 function computeRecommendation(data) {
@@ -157,18 +274,6 @@ function computeRecommendation(data) {
   });
 }
 
-// --- Search ---
-const onSearch = () => {
-  const val = searchQuery.value.toLowerCase();
-  filteredData.value = globalData.value.filter(
-    (d) =>
-      (d.firstName && d.firstName.toLowerCase().includes(val)) ||
-      (d.lastName && d.lastName.toLowerCase().includes(val)) ||
-      (d.personID && String(d.personID).includes(val))
-  );
-  currentPage.value = 1;
-};
-
 // --- Export CSV ---
 const exportCSV = () => {
   if (filteredData.value.length === 0) {
@@ -198,14 +303,7 @@ function populatePersonSelect() {
   }));
 }
 
-// --- Pagination & Table ---
-const totalPages = computed(() =>
-  Math.ceil(filteredData.value.length / rowsPerPage)
-);
-const pagedData = computed(() => {
-  const start = (currentPage.value - 1) * rowsPerPage;
-  return filteredData.value.slice(start, start + rowsPerPage);
-});
+// --- Table ---
 const tableHeaders = computed(() =>
   pagedData.value.length > 0
     ? Object.keys(pagedData.value[0]).filter(
@@ -214,10 +312,6 @@ const tableHeaders = computed(() =>
     : []
 );
 
-function changePage(page) {
-  if (page < 1 || page > totalPages.value) return;
-  currentPage.value = page;
-}
 function statusClass(status) {
   return status === "ต่ำ"
     ? "status-low"
@@ -225,18 +319,6 @@ function statusClass(status) {
       ? "status-high"
       : "";
 }
-
-// --- Watch & Plot ---
-watch(selectedPersonIDs, (newVal) => {
-  const selectedData = globalData.value.filter((d) =>
-    newVal.includes(String(d.personID))
-  );
-  childWeightSelected.value = selectedData
-    .filter(item => item.age_month != null && item.weight != null)
-    .map(item => [item.age_month, item.weight])
-  //console.log('selectedData selectedPersonIDs :>> ', selectedData);
-  //console.log('childWeightSelected.value selectedPersonIDs :>> ', childWeightSelected.value);
-});
 
 
 
