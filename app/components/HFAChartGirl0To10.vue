@@ -51,7 +51,7 @@ const option = ref(null)
 const updateOption = () => {
     option.value = {
         title: {
-            text: 'กราฟแสดงส่วนสูงตามเกณฑ์ของอายุ (Height-for-age) ของเด็กอายุ 0 - 10 ปี',
+            text: 'กราฟแสดงส่วนสูงตามเกณฑ์ของอายุ (Height-for-age) ของเด็กอายุ 0 - 10 ปี (หญิง)',
             left: 'center'
         },
         tooltip: {

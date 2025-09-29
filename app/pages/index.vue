@@ -1,18 +1,18 @@
 <template>
   <div class="w-full mx-auto my-8 p-4 container">
-    <div class="space-y-4">
+    <div class="space-y-6">
       <h1 class="text-3xl font-bold">📊 Children Growth Dashboard</h1>
 
       <!-- Upload + Search + Export -->
       <div><input type="file" @change="onFileChange" accept=".csv" /></div>
-      <div><input type="text" class="p-2 border-2 border-solid border-gray-400 rounded-lg" v-model="searchQuery"
-          placeholder="ค้นหาจากชื่อหรือรหัส" @input="onSearch" /></div>
+      <!-- <div><input type="text" class="p-2 border-2 border-solid border-gray-400 rounded-lg" v-model="searchQuery"
+          placeholder="ค้นหาจากชื่อหรือรหัส" @input="onSearch" /></div> -->
       <!-- <button @click="exportCSV">ส่งออก CSV</button> -->
 
       <!-- Table -->
       <!-- <h3>ตัวอย่างข้อมูล (20 แถว/หน้า)</h3> -->
       <div class="table-container">
-        <table v-if="pagedData.length > 0">
+        <table v-if="pagedData.length > 0" class="w-full">
           <thead class="bg-gray-100 ">
             <tr>
               <th v-for="h in tableHeaders" :key="h" class="sticky top-0 z-10 border px-2 py-1 bg-gray-100">{{ h }}</th>
@@ -27,7 +27,7 @@
           <tbody>
             <tr v-for="row in pagedData" :key="row.personID + '-' + row.age_month"
               :class="{ highlight: selectedPersonIDs.includes(String(row.personID)) }">
-              <td v-for="h in tableHeaders" :key="h" class="p-2">{{ row[h] }}</td>
+              <td v-for="h in tableHeaders" :key="h" class="p-2 text-center">{{ row[h] }}</td>
               <!-- <td :class="statusClass(row.HA_Status)">{{ row.HA_Status }}</td>
               <td>{{ row.HA_Rec }}</td>
               <td :class="statusClass(row.WA_Status)">{{ row.WA_Status }}</td>
@@ -41,8 +41,7 @@
       </div>
 
       <!-- Pagination -->
-      <!-- v-if="totalPages > 1" -->
-      <div class="pagination space-x-2">
+      <div v-if="totalPages > 1" class="pagination space-x-2">
         <button @click="changePage(currentPage - 1)" :disabled="currentPage === 1" class="hover:cursor-pointer">
           ⬅️ ก่อนหน้า
         </button>
@@ -58,10 +57,12 @@
       </div>
 
       <!-- Person Select -->
-      <div v-if="pagedData.length > 0" class="p-2 w-[50%]">
-        <h3 class="text-lg font-blod mb-2">เลือกเด็ก (PersonID)</h3>
-        <input type="text" placeholder="ค้นหาจากรหัส" v-model="selectedPersonIDs"
-          class="p-2 mb-2 border-2 border-solid border-gray-400 rounded-lg w-full" />
+      <div  v-if="pagedData.length > 0" class="p-2 w-[50%]">
+        <h3 class="text-lg font-bold mb-2">เลือกเด็ก (PersonID)</h3>
+        <input type="text" class="w-full p-2 mb-2 border-2 border-solid border-gray-400 rounded-lg" v-model="searchQuery"
+          placeholder="ค้นหาจากชื่อหรือรหัส" @input="onSearch" />
+        <!-- <input type="text" placeholder="ค้นหาจากรหัส" v-model="selectedPersonIDs"
+          class="p-2 mb-2 border-2 border-solid border-gray-400 rounded-lg w-full" /> -->
         <select multiple v-model="selectedPersonIDs"
           class="p-4 w-full h-50 border-2 border-solid border-gray-400 rounded-lg">
           <option v-for="person in personOptions" :key="person.id" :value="person.id"
@@ -79,28 +80,29 @@
         :disabled="isLoading">
         {{ isLoading ? 'กำลังประมวลผล...' : ' 💬 ปรึกษา AI Bot ' }}</button>
     </div>
-    <div v-if="AIBotMessage" class="p-8 border-2 border-gray-400 rounded-lg h-[350px] overflow-y-auto whitespace-pre-wrap">
-      <div class="flex justify-end"><button class="p-2 mb-4 bg-red-700 rounded-lg text-white" @click="AIBotMessage = ''">ปิด</button></div>
+    <div v-if="AIBotMessage"
+      class="p-8 border-2 border-gray-400 rounded-lg h-[350px] overflow-y-auto whitespace-pre-wrap">
+      <div class="flex justify-end"><button class="p-2 mb-4 bg-red-700 rounded-lg text-white"
+          @click="AIBotMessage = ''">ปิด</button></div>
       <p>{{ AIBotMessage }}</p>
     </div>
 
     <!-- Charts -->
-    <div class="p-2">
+    <div v-if="genderGraph === 'girl'" class="p-2">
       <WFAChartGirl0To10 :childData="childWeightSelected" />
-    </div>
-    <div class="p-2">
       <HFAChartGirl0To10 :childData="childHeightSelected" />
-    </div>
-    <div class="p-2">
       <PercentileChartGirl05 :childData="childWHSelected" />
+    </div>
+    <div v-else class="p-2">
+      <WFAChartBoy0To10 :childData="childWeightSelected" />
+      <HFAChartBoy0To10 :childData="childHeightSelected" />
+      <PercentileChartBoy05 :childData="childWHSelected" />
     </div>
   </div>
 </template>
 
 <script setup>
 import Papa from "papaparse";
-// import Plotly from "plotly.js-dist";
-const { $plotly } = useNuxtApp()
 
 const isLoading = ref(false);
 const globalData = ref([]);
@@ -113,8 +115,31 @@ const personOptions = ref([]);
 const childWeightSelected = ref([]);
 const childHeightSelected = ref([]);
 const childWHSelected = ref([]);
-const childAllData = ref(null);
+const promtChildData = ref(null);
 const AIBotMessage = ref("");
+const genderGraph = ref('girl');
+
+const parseCSV = (csvText) => {
+  Papa.parse(csvText, {
+    header: true,
+    dynamicTyping: true,
+    skipEmptyLines: true,
+    complete: (results) => {
+      globalData.value = results.data.filter(
+        (r) => r.personID && r.age_month && r.height && r.weight
+      )
+      filteredData.value = [...globalData.value]
+      currentPage.value = 1
+      populatePersonSelect()
+    },
+  })
+}
+
+onMounted(async () => {
+  const defaultCSV = await fetch('/default.csv')
+  const text = await defaultCSV.text()
+  parseCSV(text)
+})
 
 // --- File Upload ---
 const onFileChange = (e) => {
@@ -130,7 +155,7 @@ const onFileChange = (e) => {
       );
       filteredData.value = [...globalData.value];
       currentPage.value = 1;
-      computeRecommendation(filteredData.value);
+      //computeRecommendation(filteredData.value);
       populatePersonSelect();
     },
   });
@@ -156,21 +181,19 @@ const onSelect = (id) => {
   currentPage.value = 1;
 };
 
+//--- promt ---
+const promtAI = (data) => {
+  const promt = `ฉันมีข้อมูลน้ำหนัก ส่วนสูง คุณช่วยวิเคราะห์ข้อมูลนี้ในฐานะนักโภชนาการได้ไหม ทั้งในแง่ความสอดคล้อง/ความผิดปกติของข้อมูล และการเจริญเติบโต? index, name, last_name, id, weight, height, wa_analysis, ha_analysis, wfh_analysis, age_month, gender,`
+  const result = data.map(d => {
+    return `${d.firstName ?? null}, ${d.lastName ?? null}, ${d.personID ?? null}, ${d.weight ?? null}, ${d.height ?? null}, ${d.wa_analysis ?? null}, ${d.ha_analysis ?? null}, ${d.wfh_analysis ?? null}, ${d.age_month ?? null}, ${d.genderName ?? null}`
+  }).join(', ')  // 👈 รวมข้อความทั้งหมดด้วย ,
+  promtChildData.value = promt + result
+  //console.log('promtAI >>> ', promtChildData.value)
+}
+
+
 // --- Plot ---
 const plotGraph = (data) => {
-  childAllData.value = data
-    .map(item => [{
-      firstname: item.firstName,
-      lastname: item.lastName,
-      personID: item.personID,
-      height: item.height,
-      weight: item.weight,
-      wa_analysis: item.wa_analysis,
-      ha_analysis: item.ha_analysis,
-      wfh_analysis: item.wfh_analysis,
-      age_month: item.age_month
-    }])
-
   childWeightSelected.value = data
     .filter(item => item.age_month != null && item.weight != null)
     .map(item => [item.age_month, item.weight])
@@ -188,13 +211,15 @@ watch(selectedPersonIDs, (newVal) => {
   const selectedData = globalData.value.filter((d) =>
     newVal.includes(String(d.personID))
   );
+  genderGraph.value = selectedData[0]?.genderName === 'หญิง' ? 'girl' : 'boy'
   plotGraph(selectedData);
   onSelect(selectedData[0]?.personID || "");
+  promtAI(selectedData)
 });
 
 // --- AI Bot ---
 const postAIBot = async () => {
-  const data = childAllData.value
+  const data = { message: promtChildData.value }
   try {
     isLoading.value = true
     const response = await $fetch('/api/api_llm', {
@@ -202,7 +227,7 @@ const postAIBot = async () => {
       body: data,
       throwOnError: true
     })
-    console.log('postAIBot >>> ', response)
+    //console.log('postAIBot >>> ', response)
     AIBotMessage.value = response.message
   } catch (error) {
     console.log(error)
@@ -306,10 +331,12 @@ function populatePersonSelect() {
 // --- Table ---
 const tableHeaders = computed(() =>
   pagedData.value.length > 0
-    ? Object.keys(pagedData.value[0]).filter(
-      (h) => !["HA_Status", "HA_Rec", "WA_Status", "WA_Rec", "WH_Status", "WH_Rec"].includes(h)
-    )
+    ? Object.keys(pagedData.value[0])
     : []
+  // ? Object.keys(pagedData.value[0]).filter(
+  //   (h) => !["HA_Status", "HA_Rec", "WA_Status", "WA_Rec", "WH_Status", "WH_Rec"].includes(h)
+  // )
+  // : []
 );
 
 function statusClass(status) {

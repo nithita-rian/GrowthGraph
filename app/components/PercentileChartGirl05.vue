@@ -31,7 +31,7 @@ const option = ref(null)
 const updateOption = () => {
   option.value = {
     title: {
-      text: 'กราฟแสดงน้ำหนักตามเกณฑ์ความยาว (Weight-for-height) ของเด็กอายุ 0 - 5 ปี',
+      text: 'กราฟแสดงน้ำหนักตามเกณฑ์ความยาว (Weight-for-height) ของเด็กอายุ 0 - 5 ปี (หญิง)',
       left: 'center'
     },
     tooltip: {
