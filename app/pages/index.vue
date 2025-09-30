@@ -100,14 +100,14 @@
           {{ isLoading ? 'กำลังประมวลผล...' : ' 💬 ปรึกษา AI Bot ' }}</button>
       </div>
       <div v-if="AIBotMessage"
-        class="w-full prose max-w-none p-8 border-2 border-gray-400 rounded-lg h-[400px] overflow-y-auto whitespace-pre-wrap">
+        class="w-full prose max-w-none p-8 border-2 border-gray-400 rounded-lg h-[400px] overflow-y-auto">
         <div class="flex justify-end"><button class="px-4 py-2 mb-4 bg-red-700 rounded-lg text-white"
             @click="AIBotMessage = ''">ปิด</button></div>
         <div v-html="AIBotMessage"></div>
       </div>
     </div>
     <!-- <div v-if="html"
-      class="w-full prose markdown-tight max-w-none p-8 border-2 border-gray-400 rounded-lg h-[350px] overflow-y-auto whitespace-pre-wrap">
+      class="w-full prose markdown-tight max-w-none p-8 border-2 border-gray-400 rounded-lg h-[350px] overflow-y-auto">
       <div class="flex justify-end"><button class="p-2 mb-4 bg-red-700 rounded-lg text-white"
           @click="html = ''">ปิด</button></div>
       <div v-html="html"></div>
@@ -475,24 +475,6 @@ function plotComparison(data) {
 .prose th {
   background: #f9f9f9;
   font-weight: bold;
-}
-
-/* ใช้ selector นี้เพื่อ Target องค์ประกอบของ Prose อย่างเฉพาะเจาะจง */
-.markdown-tight :where(li:not([class])) {
-  /* ลด margin-top และ margin-bottom ของ li ลง */
-  margin-top: 0.1em;
-  margin-bottom: 0.1em;
-}
-
-.markdown-tight :where(ul:not([class]), ol:not([class])) {
-  /* ลด margin-top และ margin-bottom ของ ul/ol ลง */
-  margin-top: 0.1em;
-  margin-bottom: 0.1em;
-}
-
-/* ถ้าต้องการให้ระหว่างหัวข้อกับรายการชิดกันด้วย */
-.markdown-tight :where(h1:not([class]), h2:not([class]), h3:not([class])) {
-  margin-bottom: 0.5em;
 }
 
 .table-container {
