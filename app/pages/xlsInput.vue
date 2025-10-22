@@ -1,12 +1,3 @@
-<!-- <template>
-  <div class="mx-auto p-4">
-    <ul class="space-y-2 text-lg">
-      <li><NuxtLink to="/csvInput">csvInput</NuxtLink></li>
-      <li><NuxtLink to="/xlsInput">xlsInput</NuxtLink></li>
-    </ul>
-  </div>
-</template> -->
-
 <template>
   <div class="w-full mx-auto my-8 p-4 container space-y-6">
     <div class="space-y-6">
@@ -685,4 +676,3 @@ function plotComparison(data) {
   font-weight: bold;
 }
 </style>
-

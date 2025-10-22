@@ -1,12 +1,3 @@
-<!-- <template>
-  <div class="mx-auto p-4">
-    <ul class="space-y-2 text-lg">
-      <li><NuxtLink to="/csvInput">csvInput</NuxtLink></li>
-      <li><NuxtLink to="/xlsInput">xlsInput</NuxtLink></li>
-    </ul>
-  </div>
-</template> -->
-
 <template>
   <div class="w-full mx-auto my-8 p-4 container space-y-6">
     <div class="space-y-6">
@@ -24,21 +15,10 @@
             </svg>
             <p class="mb-2 text-base text-[#E97681] dark:text-gray-400"><span
                 class="font-semibold">คลิกเพื่อเพิ่มไฟล์ข้อมูลเด็ก</span></p>
-            <p class="text-sm text-[#E97681] dark:text-gray-400">.csv, .xls, .xlsx, .xlsm only</p>
-            <!-- <p class="text-sm text-[#E97681] dark:text-gray-400">header จำเป็นต้องตรงตามตัวอย่างด้านล่าง</p> -->
+            <p class="text-sm text-[#E97681] dark:text-gray-400">CSV only</p>
           </div>
-          <input id="dropzone-file" type="file" @change="onFileChange" accept=".csv, .xls, .xlsx, .xlsm"
-            class="hidden" />
-
-
+          <input id="dropzone-file" type="file" @change="onFileChange" accept=".csv" class="hidden" />
         </label>
-      </div>
-      <div class="flex items-center space-x-2" v-if="sheetNames.length">
-        <p>เลือก sheet ที่ต้องการดูข้อมูล</p>
-        <select class="border border-[#E97681] rounded-lg p-2" v-model="selectedSheet" @change="loadSelectedSheet">
-          <option v-for="s in sheetNames" :key="s" :value="s">{{ s }}</option>
-        </select>
-
       </div>
 
       <!-- <div><input type="text" class="p-2 border-2 border-solid border-gray-400 rounded-lg" v-model="searchQuery"
@@ -152,7 +132,6 @@
 
 <script setup>
 import Papa from "papaparse";
-import * as XLSX from "xlsx"
 import { marked } from 'marked'
 
 const isLoading = ref(false);
@@ -196,183 +175,25 @@ onMounted(async () => {
   parseCSV(text)
 })
 
-const sheetNames = ref([])
-const selectedSheet = ref(null)
-let workbookRef = null
-
-function normalizeKeys(obj) {
-  // 🔹 table mapping สำหรับ header ที่เรารู้แน่ ๆ
-  const mappingTable = {
-    personid: "personID",
-    id: "personID",
-    name: "firstName",
-    firstname: "firstName",
-    lastname: "lastName",
-    gender: "genderName",
-    gendername: "genderName",
-    sex: "genderName",
-    male_female: "genderName",
-
-    // อายุ (เดือน)
-    age: "age_month",
-    ages: "age_month",
-    age_month: "age_month",
-    age_months: "age_month",
-    month: "age_month",
-    months: "age_month",
-    "age (month)": "age_month",
-
-    // ส่วนสูง
-    height: "height",
-    ht: "height",
-    tall: "height",
-    stature: "height",
-    length: "height",
-
-    // น้ำหนัก
-    weight: "weight",
-    wt: "weight",
-    mass: "weight",
-    bodyweight: "weight",
-  }
-
-  const newObj = {}
-
-  for (const key in obj) {
-    const cleanKey = key.trim().toLowerCase().replace(/\s+/g, "")
-    let normalizedKey = mappingTable[cleanKey]
-
-    // 🔹 เผื่อกรณีชื่อใกล้เคียง เช่น "age in months" → age_month
-    if (!normalizedKey) {
-      if (cleanKey.includes("month")) normalizedKey = "age_month"
-      else if (cleanKey.includes("height") || cleanKey.includes("length") || cleanKey.includes("tall"))
-        normalizedKey = "height"
-      else if (cleanKey.includes("weight") || cleanKey.includes("mass") || cleanKey.includes("wt"))
-        normalizedKey = "weight"
-      else if (cleanKey.includes("gender") || cleanKey.includes("sex"))
-        normalizedKey = "genderName"
-      else if (cleanKey.includes("name"))
-        normalizedKey = "firstName"
-      else if (cleanKey.includes("id"))
-        normalizedKey = "personID"
-    }
-
-    // ถ้ายังไม่มี mapping ให้ใช้ชื่อเดิม
-    newObj[normalizedKey || key] = obj[key]
-  }
-
-  return newObj
-}
-
-
 // --- File Upload ---
-const onFileChange = async (e) => {
-  const file = e.target.files[0]
-  if (!file) return
-
-  // 🧹 เคลียร์ข้อมูลเก่าก่อนทุกครั้ง
-  globalData.value = []
-  filteredData.value = []
-  sheetNames.value = []
-  selectedSheet.value = null
-  workbookRef = null
-  currentPage.value = 1
-  if (typeof populatePersonSelect === "function") populatePersonSelect([])
-
-  const fileName = file.name.toLowerCase()
-
-  if (fileName.endsWith(".csv")) {
-    Papa.parse(file, {
-      header: true,
-      dynamicTyping: true,
-      skipEmptyLines: true,
-      complete: (results) => {
-        const normalized = results.data.map(normalizeKeys)
-        globalData.value = normalized.filter(
-          (r) => r.personID && r.age_month && r.height && r.weight
-        )
-        filteredData.value = [...globalData.value]
-        currentPage.value = 1
-        populatePersonSelect()
-      },
-    })
-  } else if (
-    fileName.endsWith(".xls") ||
-    fileName.endsWith(".xlsx") ||
-    fileName.endsWith(".xlsm")
-  ) {
-    const data = await file.arrayBuffer()
-    const workbook = XLSX.read(data, { type: "array" })
-
-    workbookRef = workbook
-    sheetNames.value = workbook.SheetNames
-    selectedSheet.value = workbook.SheetNames[0]
-    loadSelectedSheet()
-  } else {
-    alert("รองรับเฉพาะไฟล์ .csv, .xls, .xlsx, .xlsm เท่านั้น")
-  }
-}
-
-// const loadSelectedSheet = () => {
-//   if (!workbookRef || !selectedSheet.value) return
-//   const sheet = workbookRef.Sheets[selectedSheet.value]
-//   const jsonData = XLSX.utils.sheet_to_json(sheet, { defval: "" }).map(normalizeKeys)
-//   globalData.value = jsonData.filter(
-//     (r) => r.personID && r.age_month && r.height && r.weight
-//   )
-//   filteredData.value = [...globalData.value]
-//   populatePersonSelect()
-// }
-
-const loadSelectedSheet = () => {
-  if (!workbookRef || !selectedSheet.value) return
-
-  const sheet = workbookRef.Sheets[selectedSheet.value]
-  let jsonData = XLSX.utils.sheet_to_json(sheet, { defval: "" }).map(normalizeKeys)
-
-  if (!jsonData.length) {
-    globalData.value = []
-    filteredData.value = []
-    return
-  }
-
-  // 🔹 ถ้าไม่มี personID ให้สร้างอัตโนมัติ
-  if (!("personID" in jsonData[0])) {
-    let personCounter = 1
-    let currentPID = `Auto-${personCounter}`
-
-    for (let i = 0; i < jsonData.length; i++) {
-      const prev = jsonData[i - 1]
-      const curr = jsonData[i]
-
-      // ถ้าอายุเดือนลดลง → แปลว่าเริ่มเด็กคนใหม่
-      if (prev && curr.age_month && prev.age_month && curr.age_month < prev.age_month) {
-        personCounter++
-        currentPID = `Auto-${personCounter}`
-      }
-
-      jsonData[i].personID = currentPID
-    }
-  }
-
-  // ✅ เก็บเฉพาะข้อมูลที่มีอายุ ส่วนสูง น้ำหนัก
-  globalData.value = jsonData.filter(
-    (r) => r.age_month && r.height && r.weight
-  )
-
-  filteredData.value = [...globalData.value]
-
-  // ✅ อัปเดต dropdown รายชื่อเด็ก
-  const personMap = {}
-  filteredData.value.forEach(d => {
-    if (!personMap[d.personID]) {
-      personMap[d.personID] = `${d.firstName || "เด็ก"} ${d.lastName || d.personID}`
-    }
-  })
-  personOptions.value = Object.keys(personMap).map(id => ({ id, name: personMap[id] }))
-}
-
-
+const onFileChange = (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  Papa.parse(file, {
+    header: true,
+    dynamicTyping: true,
+    skipEmptyLines: true,
+    complete: (results) => {
+      globalData.value = results.data.filter(
+        (r) => r.personID && r.age_month && r.height && r.weight
+      );
+      filteredData.value = [...globalData.value];
+      currentPage.value = 1;
+      //computeRecommendation(filteredData.value);
+      populatePersonSelect();
+    },
+  });
+};
 
 // --- Search ---
 let searchTimeout = null
@@ -685,4 +506,3 @@ function plotComparison(data) {
   font-weight: bold;
 }
 </style>
-

@@ -1,0 +1,9 @@
+services:
+  web:
+    image: ouenithita/growthgraph:2025-10-22
+    container_name: growthgraph
+    ports:
+      - "7000:7000"
+    environment:
+      - NITRO_PORT=7000
+    restart: always
