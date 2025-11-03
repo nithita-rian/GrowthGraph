@@ -1,41 +1,24 @@
-# ===============================
-# 1️⃣ Build Stage
-# ===============================
 FROM node:22-alpine AS builder
 
 WORKDIR /app
 
-# Copy package.json + lock file ก่อน (เพื่อ cache layer install)
+# Copy package files
 COPY package*.json ./
 
-# ติดตั้ง dependencies สำหรับ build
+# Install dependencies
 RUN npm ci
 
-# Copy source code ทั้งหมด
+# Copy project files
 COPY . .
 
-# Build โปรเจกต์ Nuxt
+# Build the application
 RUN npm run build
 
-# ===============================
-# 2️⃣ Production Stage
-# ===============================
-FROM node:22-alpine AS production
+# Expose port
+EXPOSE 3000
 
-WORKDIR /app
+# Set environment to production
+ENV NODE_ENV=production
 
-# Copy ผลลัพธ์ที่ build แล้ว
-COPY --from=builder /app/.output ./.output
-COPY package*.json ./
-
-# ติดตั้งเฉพาะ production dependencies
-RUN npm ci --omit=dev
-
-# เพิ่มบรรทัดนี้เพื่อลดช่องโหว่ใน layer OS (security patch)
-RUN apk update && apk upgrade
-
-# เปิด port ที่ Nuxt ใช้
-EXPOSE 7000
-
-# คำสั่งรัน Nuxt App
+# Start the application
 CMD ["node", ".output/server/index.mjs"]
